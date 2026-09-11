@@ -1,4 +1,4 @@
-PEFR 모바일 정적 웹앱 v2.5
+PEFR 모바일 정적 웹앱 v2.6
 
 구성
 - index.html
@@ -75,3 +75,11 @@ v2.5 추가사항
 - 파일 공유 미지원 브라우저에서는 CSV 자동 다운로드 후 담당자 메일주소와 첨부방법 안내
 - 필요 시 '메일 작성창 열기' 보조 버튼 제공
 - CSV/PDF 저장은 '다른 저장 방법' 아래로 이동
+
+
+v2.6 추가사항
+- GitHub Pages에서 이전 화면이 계속 보이는 문제 개선
+- index.html은 network-first 방식으로 항상 최신 파일을 먼저 확인
+- 새 서비스워커 설치 시 이전 캐시 자동 삭제
+- service worker updateViaCache="none" 및 즉시 update 적용
+- 기존 입력 데이터(localStorage)는 그대로 유지
