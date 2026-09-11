@@ -1,4 +1,4 @@
-PEFR 모바일 정적 웹앱 v2.6
+PEFR 모바일 정적 웹앱 v2.7
 
 구성
 - index.html
@@ -83,3 +83,11 @@ v2.6 추가사항
 - 새 서비스워커 설치 시 이전 캐시 자동 삭제
 - service worker updateViaCache="none" 및 즉시 update 적용
 - 기존 입력 데이터(localStorage)는 그대로 유지
+
+
+v2.7 추가사항
+- 앱 화면은 캐시에서 즉시 열어 초기 로딩 속도 개선
+- 동시에 백그라운드에서 최신 index.html 확인
+- 새 버전이 있으면 캐시에 조용히 저장하여 다음 새로고침/재접속 때 적용
+- 새 서비스워커 활성화 시 이전 버전 캐시 삭제
+- 기존 PEFR 입력자료(localStorage)는 유지
