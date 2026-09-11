@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b5fa5">
+<link rel="manifest" href="manifest.webmanifest">
+<title>PEFR 연속측정</title>
+<style>
+:root{--p:#0b5fa5;--p2:#0c7db5;--bg:#f3f6fa;--card:#fff;--txt:#172433;--muted:#6c7d8d;--line:#dbe4ec;--ok:#087a50;--warn:#ae2735}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,"Noto Sans KR","Malgun Gothic",sans-serif;color:var(--txt)}
+header{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;padding:20px 16px 18px;position:sticky;top:0;z-index:5;box-shadow:0 4px 14px #0002}
+.wrap{max-width:880px;margin:auto}.org{font-size:13px;font-weight:800;opacity:.95}.title{font-size:23px;font-weight:900;margin:4px 0 2px}.subtitle{font-size:13px;opacity:.9}
+main{max-width:880px;margin:auto;padding:12px 12px 80px}.card{background:var(--card);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 6px 20px #1d3d5c12}
+h2{font-size:18px;color:var(--p);margin:0 0 12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+label{font-size:12px;font-weight:800;color:#43586a}input,select,textarea{width:100%;padding:10px;border:1px solid #cbd8e2;border-radius:10px;margin-top:5px;background:#fff;font:inherit}
+button{border:0;border-radius:11px;padding:11px 13px;background:var(--p);color:#fff;font-weight:900;font:inherit;cursor:pointer}.secondary{background:#e9f2f8;color:var(--p)}.green{background:var(--ok)}.danger{background:#fff0f1;color:#9a1f2b}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.actions>*{flex:1 1 140px}
+.progress{height:12px;background:#e6edf3;border-radius:99px;overflow:hidden}.progress>div{height:100%;background:linear-gradient(90deg,var(--p),var(--p2));width:0}.progressrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:7px}
+.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:12px}.todaybox{background:#f0f7fb;border:1px solid #d6e8f2;border-radius:14px;padding:13px}.big{font-size:30px;font-weight:950;color:var(--p)}.muted{color:var(--muted);font-size:12px}.stat{background:#f5f8fb;border-radius:12px;padding:11px;text-align:center}.stat b{display:block;font-size:21px;color:var(--p)}
+.slot{border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}.slothead{display:flex;justify-content:space-between;align-items:center;font-weight:900;color:#214c6c}.slotgrid{display:grid;grid-template-columns:85px repeat(3,1fr);gap:7px;margin-top:9px}.slotgrid2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.max{background:#eef8f4;color:var(--ok);padding:9px;border-radius:10px;text-align:center;font-weight:950;margin-top:8px}.repwarn{margin-top:7px;padding:8px 10px;border-radius:9px;background:#fff3f4;color:var(--warn);font-size:12px;font-weight:800}.repok{margin-top:7px;padding:8px 10px;border-radius:9px;background:#eff8f4;color:var(--ok);font-size:12px;font-weight:800}
+.tabs{display:flex;gap:6px;overflow:auto;padding-bottom:2px}.tabs button{white-space:nowrap;background:#edf3f7;color:#31536c}.tabs button.active{background:var(--p);color:#fff}
+.daycard{border:1px solid var(--line);border-radius:13px;padding:11px;margin:8px 0}.dayhead{display:flex;justify-content:space-between;align-items:center;font-weight:850}.badge{display:inline-block;padding:4px 8px;border-radius:99px;font-size:11px;background:#eef4f7;color:#496070}.badge.ok{background:#ebf7f1;color:var(--ok)}.badge.warn{background:#fff0f1;color:var(--warn)}
+canvas{width:100%;height:240px;border:1px solid #e5ebf0;border-radius:12px;background:#fff}.legend{font-size:12px;color:var(--muted);margin-top:6px}
+.notice{background:#f1f7fb;border-left:4px solid var(--p);padding:11px 12px;border-radius:9px;font-size:13px;line-height:1.55}.warntext{color:var(--warn);font-weight:800;font-size:13px}.oktext{color:var(--ok);font-weight:800;font-size:13px}
+.save{font-size:12px;color:var(--ok);font-weight:800}.hidden{display:none!important}
+footer{font-size:11px;color:var(--muted);line-height:1.5}
+@media(max-width:650px){.grid2,.slotgrid2{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.slotgrid{grid-template-columns:80px repeat(3,1fr)}.title{font-size:20px}.card{padding:14px}.grid3{grid-template-columns:repeat(3,1fr)}}
+@media print{
+ body{background:#fff;font-size:9px}header,.no-print,#todayCard,#historyCard,#inputCard{display:none!important}main{max-width:none;padding:0}.card{box-shadow:none;border:0;padding:5px;margin:0}#summaryCard{display:block!important}
+ canvas{height:180px}.grid2{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:repeat(3,1fr)}
+}
+
+.guideHero{background:linear-gradient(180deg,#ffffff,#f5faff);border:1px solid #dcebf4}
+.guideTitle{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.guideIcon{width:44px;height:44px;border-radius:14px;background:#e8f3fa;display:grid;place-items:center;font-size:24px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.step{background:#fff;border:1px solid #dce6ee;border-radius:15px;padding:11px;text-align:center;min-height:190px}
+.step svg{width:100%;height:92px}
+.stepnum{display:inline-grid;place-items:center;width:25px;height:25px;border-radius:50%;background:var(--p);color:#fff;font-size:12px;font-weight:900;margin-bottom:6px}
+.steptitle{font-weight:950;font-size:14px;color:#204d6d;margin-bottom:4px}
+.steptext{font-size:12px;color:#5f7180;line-height:1.45}
+.howto{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:10px}
+.how{background:#f4f8fb;border-radius:13px;padding:11px}
+.how b{display:block;color:var(--p);font-size:13px;margin-bottom:4px}
+.how span{font-size:12px;line-height:1.45;color:#5d6f7d}
+.tipbox{margin-top:12px;background:#fff8e8;border:1px solid #f0dfb7;border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.55;color:#725b28}
+@media(max-width:700px){.steps,.howto{grid-template-columns:1fr 1fr}.step{min-height:180px}}
+@media(max-width:430px){.steps,.howto{grid-template-columns:1fr}.step{display:grid;grid-template-columns:100px 1fr;column-gap:8px;text-align:left;min-height:auto;align-items:center}.step svg{height:80px}.step>div:last-child{align-self:center}.stepnum{margin:0 0 5px 0}}
+@media print{#guideCard{display:block!important}.steps{grid-template-columns:repeat(4,1fr)}.howto{grid-template-columns:repeat(4,1fr)}}
+
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="org">근로복지공단 · 직업환경연구원</div><div class="title">최대호기유속(PEFR) 연속측정</div><div class="subtitle">작업 관련 천식 평가를 위한 자가 기록 · 매일 4회 이상</div></div></header>
+<main>
+
+<section class="card guideHero" id="guideCard">
+  <div class="guideTitle">
+    <div class="guideIcon">💨</div>
+    <div>
+      <h2 style="margin:0">PEFR은 이렇게 측정하세요</h2>
+      <div class="muted">매번 같은 방법으로 측정하면 기록의 신뢰도가 높아집니다.</div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <svg viewBox="0 0 160 100" aria-label="바르게 서서 깊게 숨을 들이마시는 그림">
+        <circle cx="50" cy="22" r="12" fill="#d9ecf7"/>
+        <path d="M50 35 L50 70 M50 48 L32 62 M50 48 L70 58 M50 70 L38 92 M50 70 L64 92" stroke="#2d668b" stroke-width="6" stroke-linecap="round" fill="none"/>
+        <path d="M98 28 C112 18,130 20,138 34" stroke="#67a7c9" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M98 42 C112 32,130 34,138 48" stroke="#67a7c9" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M91 35 l10 -7 v14 z" fill="#67a7c9"/>
+      </svg>
+      <div>
+        <div class="stepnum">1</div>
+        <div class="steptitle">똑바로 서서</div>
+        <div class="steptext">PEF 측정기를 0에 맞추고 가능한 한 깊게 숨을 들이마십니다.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <svg viewBox="0 0 160 100" aria-label="측정기를 입에 물고 강하고 빠르게 부는 그림">
+        <circle cx="44" cy="34" r="18" fill="#d9ecf7"/>
+        <path d="M33 34 q11 8 22 0" stroke="#2d668b" stroke-width="4" fill="none"/>
+        <rect x="58" y="31" width="52" height="10" rx="5" fill="#4f8fb4"/>
+        <rect x="105" y="27" width="34" height="18" rx="4" fill="#cfe5f2" stroke="#4f8fb4" stroke-width="2"/>
+        <path d="M118 18 l12 -10 M128 20 l18 -5 M119 53 l13 11" stroke="#67a7c9" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="stepnum">2</div>
+        <div class="steptitle">한 번에 세게!</div>
+        <div class="steptext">마우스피스를 입술로 꽉 물고 망설이지 말고 한 번에 빠르고 세게 붑니다.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <svg viewBox="0 0 160 100" aria-label="세 번 측정하고 가장 높은 값을 고르는 그림">
+        <rect x="18" y="19" width="124" height="64" rx="12" fill="#f4f8fb" stroke="#bcd4e3" stroke-width="2"/>
+        <text x="30" y="43" font-size="16" fill="#526c7d">420</text>
+        <text x="30" y="64" font-size="16" fill="#526c7d">450</text>
+        <text x="30" y="83" font-size="16" fill="#526c7d">440</text>
+        <circle cx="104" cy="61" r="20" fill="#e7f6ef"/>
+        <path d="M94 61 l7 8 15 -18" stroke="#0b7a50" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div class="stepnum">3</div>
+        <div class="steptitle">3회 측정</div>
+        <div class="steptext">3회 측정한 뒤 가장 높은 값을 사용합니다. 상위 두 값 차이가 40 L/min보다 크면 앱이 2회 추가 측정을 안내합니다.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <svg viewBox="0 0 160 100" aria-label="작업 상태와 증상을 함께 기록하는 그림">
+        <rect x="22" y="18" width="116" height="68" rx="10" fill="#f4f8fb" stroke="#bcd4e3" stroke-width="2"/>
+        <path d="M38 38 h50 M38 53 h72 M38 68 h58" stroke="#6b91aa" stroke-width="5" stroke-linecap="round"/>
+        <rect x="110" y="31" width="14" height="14" rx="3" fill="#dff2ea" stroke="#0b7a50" stroke-width="2"/>
+        <path d="M113 38 l4 4 7 -9" stroke="#0b7a50" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="stepnum">4</div>
+        <div class="steptitle">상황도 함께 기록</div>
+        <div class="steptext">작업 중인지, 휴무인지, 측정 장소·증상·기관지확장제 사용 여부를 함께 남깁니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tipbox">
+    <b>기억해 주세요.</b> 하루 4회 이상, 가능하면 <b>기상 직후</b>와 <b>늦은 오후 또는 이른 저녁</b> 측정을 포함해 주세요.
+    기관지확장제를 사용해야 한다면 가능하면 약 사용 전 측정하고, 사용 후 재측정 시에는 사용 시간을 함께 기록해 주세요.
+  </div>
+
+  <h2 style="margin-top:18px">앱은 이렇게 사용합니다</h2>
+  <div class="howto">
+    <div class="how"><b>① 처음 한 번만</b><span>이름·회사·부서와 측정 시작일을 입력하고 <strong>측정기간 만들기</strong>를 누릅니다.</span></div>
+    <div class="how"><b>② 매일 측정 후</b><span>오늘 기록에 PEF 1·2·3을 입력합니다. 최고값은 자동으로 계산됩니다.</span></div>
+    <div class="how"><b>③ 작업 여부 기록</b><span>각 측정마다 작업 중/비작업/휴일과 증상, 약 사용 여부를 선택합니다.</span></div>
+    <div class="how"><b>④ 3~4주 뒤 제출</b><span><strong>CSV 저장</strong> 또는 <strong>PDF 저장/인쇄</strong> 후 담당자 메일로 첨부해 보냅니다.</span></div>
+  </div>
+</section>
+
+<section class="card no-print">
+<h2>대상자 정보</h2>
+<div class="grid2">
+<label>이름<input id="name"></label><label>회사명<input id="company"></label>
+<label>부서/작업장<input id="dept"></label><label>생년월일<input id="birth" type="date"></label>
+<label>키(cm)<input id="height" type="number"></label><label>체중(kg)<input id="weight" type="number" step="0.1"></label>
+<label>측정 시작일<input id="startDate" type="date"></label><label>측정기간<select id="weeks"><option value="3">3주</option><option value="4" selected>4주</option></select></label>
+</div>
+<div class="actions" style="margin-top:10px"><button id="makePeriod">측정기간 만들기</button><button id="notifyBtn" class="secondary">측정시간 알림 허용</button></div>
+<p class="save" id="saveState">이 휴대폰 브라우저에 자동저장됩니다.</p>
+</section>
+
+<section class="card" id="todayCard">
+<h2>오늘의 측정</h2>
+<div class="hero">
+<div class="todaybox"><div class="muted" id="todayDate"></div><div class="big"><span id="todayDone">0</span> / 4</div><div class="muted">오늘 완료한 유효 측정 횟수</div><div id="nextGuide" style="margin-top:8px;font-weight:800"></div></div>
+<div><div class="stat"><b id="daysDone">0</b>완료 일수</div><div class="stat" style="margin-top:8px"><b id="totalValid">0</b>전체 측정</div></div>
+</div>
+<div style="margin-top:12px"><div class="progressrow"><b>전체 진행률</b><span id="progressText">0%</span></div><div class="progress"><div id="progressBar"></div></div></div>
+</section>
+
+<section class="card" id="inputCard">
+<h2>오늘 기록 입력</h2>
+<div class="notice no-print">한 번 측정할 때 3회 불고 가장 높은 값을 사용합니다. <b>상위 두 값의 차이가 40 L/min을 초과하면 2회 추가 측정이 필요하다는 경고</b>가 표시됩니다.</div>
+<div id="todaySlots"></div>
+<button id="addSlot" class="secondary no-print">+ 오늘 측정 추가</button>
+</section>
+
+<section class="card no-print" id="historyCard">
+<h2>지난 기록</h2>
+<div class="tabs" id="weekTabs"></div>
+<div id="history"></div>
+</section>
+
+<section class="card" id="summaryCard">
+<h2>측정 요약</h2>
+<div class="grid3">
+<div class="stat"><b id="sumDays">0</b>기록 일수</div>
+<div class="stat"><b id="workMean">-</b>작업일 평균</div>
+<div class="stat"><b id="offMean">-</b>비작업일 평균</div>
+</div>
+<p class="muted">평균값은 각 유효 측정의 최고 PEFR을 사용한 단순 요약입니다.</p>
+<h3 style="font-size:14px">PEFR 추이</h3><canvas id="trendCanvas" width="760" height="240"></canvas>
+<div class="legend">● 각 날짜의 일평균 PEFR · 작업일/비작업일을 구분하여 표시</div>
+<h3 style="font-size:14px;margin-top:16px">일중변동률(D.V.)</h3><canvas id="dvCanvas" width="760" height="240"></canvas>
+<div class="legend">D.V. = (일최고 − 일최저) / 일평균 × 100. 20% 이상인 날은 참고 표시합니다.</div>
+<div id="interpretation" class="notice" style="margin-top:12px"></div>
+<div class="actions no-print" style="margin-top:12px">
+<button id="csvBtn" class="secondary">CSV 저장</button><button id="printBtn" class="secondary">요약 PDF로 저장/인쇄</button>
+<button id="shareBtn" class="secondary">CSV 파일 공유</button><button id="mailBtn" class="green">담당자 메일 열기</button>
+</div>
+<p class="muted no-print">담당자: kyeong85@comwel.or.kr · 메일 앱에서는 저장한 CSV 또는 PDF를 첨부해 주세요.</p>
+</section>
+
+<section class="card no-print">
+<h2>백업 / 복원</h2>
+<div class="actions"><button id="backupBtn" class="secondary">JSON 백업</button><label style="flex:1">백업파일 복원<input id="restoreFile" type="file" accept=".json"></label><button id="clearBtn" class="danger">이 기기 기록 초기화</button></div>
+</section>
+
+<footer>입력값은 별도 서버 DB로 전송하지 않고 이 기기의 브라우저 저장공간(localStorage)에 보관하도록 구성되어 있습니다. 브라우저 데이터 삭제·시크릿 모드·기기 변경 시 기록이 유지되지 않을 수 있으므로 중간 백업을 권장합니다. 본 화면의 통계는 기록 검토를 돕기 위한 요약이며 Oasys 전문 소프트웨어의 진단 점수를 대체하지 않습니다. · v2.1</footer>
+</main>
+<script>
+const KEY="comwel_pefr_v2_0", RECIPIENT="kyeong85@comwel.or.kr";
+const $=id=>document.getElementById(id);
+const fields=["name","company","dept","birth","height","weight","startDate","weeks"];
+let state={info:{weeks:"4"},days:[],savedAt:null};
+const suggested=["07:00","11:00","16:00","21:00"];
+const emptySlot=(t="")=>({time:t,p1:"",p2:"",p3:"",p4:"",p5:"",work:"",place:"",symptom:"",med:""});
+function localISO(d){let x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10)}
+function todayISO(){return localISO(new Date())}
+function maxVals(s){return [s.p1,s.p2,s.p3,s.p4,s.p5].map(Number).filter(v=>v>0).sort((a,b)=>b-a)}
+function maxPEF(s){let a=maxVals(s);return a.length?a[0]:""}
+function reproducible(s){let a=maxVals(s); if(a.length<2)return null; return (a[0]-a[1])<=40}
+function dayValues(d){return d.slots.map(maxPEF).filter(v=>v!=="").map(Number)}
+function dayMean(d){let a=dayValues(d);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null}
+function dv(d){let a=dayValues(d);if(a.length<2)return null;let m=a.reduce((x,y)=>x+y,0)/a.length;return (Math.max(...a)-Math.min(...a))/m*100}
+function weekday(ds){return ["일","월","화","수","목","금","토"][new Date(ds+"T00:00:00").getDay()]+"요일"}
+function save(){
+ fields.forEach(id=>state.info[id]=$(id).value);
+ state.savedAt=new Date().toISOString(); localStorage.setItem(KEY,JSON.stringify(state));
+ $("saveState").textContent="✓ 자동저장 "+new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
+ updateAll();
+}
+function load(){
+ try{let x=JSON.parse(localStorage.getItem(KEY));if(x)state=x}catch(e){}
+ fields.forEach(id=>{if(state.info?.[id]!=null)$(id).value=state.info[id]});
+ updateAll(); if(state.savedAt)$("saveState").textContent="✓ 마지막 저장 "+new Date(state.savedAt).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+function makePeriod(){
+ let s=$("startDate").value;if(!s){alert("측정 시작일을 먼저 입력해 주세요.");return}
+ if(state.days.length&&!confirm("현재 기록을 지우고 새 측정기간을 만들까요?"))return;
+ state.days=[];let d0=new Date(s+"T00:00:00"),n=+$("weeks").value*7;
+ for(let i=0;i<n;i++){let d=new Date(d0);d.setDate(d0.getDate()+i);state.days.push({date:localISO(d),slots:suggested.map(emptySlot)})}
+ save();
+}
+function getToday(){return state.days.find(d=>d.date===todayISO())}
+function renderToday(){
+ let d=getToday(); $("todayDate").textContent=todayISO()+" "+weekday(todayISO());
+ if(!d){$("todaySlots").innerHTML='<div class="notice">오늘 날짜가 측정기간에 포함되지 않습니다. 측정 시작일을 확인해 주세요.</div>';return}
+ $("todaySlots").innerHTML="";
+ d.slots.forEach((s,si)=>$("todaySlots").appendChild(slotEl(d,si,true)));
+}
+function slotEl(d,si,isToday=false){
+ let s=d.slots[si], vals=maxVals(s), max=maxPEF(s), rep=reproducible(s), needsMore=rep===false && vals.length<5;
+ let el=document.createElement("div");el.className="slot";
+ let dayIndex=state.days.indexOf(d);
+ el.innerHTML=`<div class="slothead"><span>${si+1}회 측정</span><span>${max?`최고 ${max} L/min`:"미입력"}</span></div>
+ <div class="slotgrid">
+ <label>시간<input type="time" data-di="${dayIndex}" data-si="${si}" data-k="time" value="${s.time||""}"></label>
+ <label>PEF 1<input type="number" inputmode="numeric" data-di="${dayIndex}" data-si="${si}" data-k="p1" value="${s.p1||""}"></label>
+ <label>PEF 2<input type="number" inputmode="numeric" data-di="${dayIndex}" data-si="${si}" data-k="p2" value="${s.p2||""}"></label>
+ <label>PEF 3<input type="number" inputmode="numeric" data-di="${dayIndex}" data-si="${si}" data-k="p3" value="${s.p3||""}"></label>
+ </div>
+ ${needsMore?`<div class="repwarn">상위 두 값 차이가 40 L/min 초과입니다. 2회 더 측정해 주세요.</div>
+ <div class="slotgrid" style="grid-template-columns:1fr 1fr"><label>PEF 4<input type="number" inputmode="numeric" data-di="${dayIndex}" data-si="${si}" data-k="p4" value="${s.p4||""}"></label><label>PEF 5<input type="number" inputmode="numeric" data-di="${dayIndex}" data-si="${si}" data-k="p5" value="${s.p5||""}"></label></div>`:""}
+ ${rep===true?'<div class="repok">✓ 반복성 기준 충족(상위 두 값 차이 ≤40 L/min)</div>':""}
+ <div class="slotgrid2">
+ <label>작업상태<select data-di="${dayIndex}" data-si="${si}" data-k="work"><option value="">선택</option><option ${s.work==="작업 중"?"selected":""}>작업 중</option><option ${s.work==="비작업"?"selected":""}>비작업</option><option ${s.work==="휴일"?"selected":""}>휴일</option></select></label>
+ <label>측정장소<input data-di="${dayIndex}" data-si="${si}" data-k="place" value="${s.place||""}" placeholder="작업장 / 집"></label>
+ <label>증상<input data-di="${dayIndex}" data-si="${si}" data-k="symptom" value="${s.symptom||""}" placeholder="기침·천명·호흡곤란 등"></label>
+ <label>기관지확장제<input data-di="${dayIndex}" data-si="${si}" data-k="med" value="${s.med||""}" placeholder="없음 / 약명·시간"></label>
+ </div>`;
+ el.querySelectorAll("[data-k]").forEach(inp=>{
+   inp.addEventListener("change",e=>{let x=state.days[+e.target.dataset.di].slots[+e.target.dataset.si];x[e.target.dataset.k]=e.target.value;save()});
+ });
+ return el;
+}
+function renderHistory(){
+ let tabs=$("weekTabs");tabs.innerHTML="";let weeks=Math.max(1,Math.ceil(state.days.length/7));
+ for(let w=0;w<weeks;w++){let b=document.createElement("button");b.textContent=`${w+1}주차`;b.onclick=()=>showWeek(w,b);tabs.appendChild(b)}
+ if(tabs.firstChild)showWeek(0,tabs.firstChild);
+}
+function showWeek(w,btn){
+ document.querySelectorAll("#weekTabs button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");
+ let h=$("history");h.innerHTML="";state.days.slice(w*7,w*7+7).forEach(d=>{
+  let vals=dayValues(d), done=vals.length>=4, m=dayMean(d), v=dv(d);
+  let work=dominantWork(d);
+  let x=document.createElement("div");x.className="daycard";
+  x.innerHTML=`<div class="dayhead"><span>${d.date} ${weekday(d.date)}</span><span class="badge ${done?"ok":"warn"}">${done?"4회 이상 완료":vals.length+"회 기록"}</span></div>
+  <div class="muted" style="margin-top:6px">${work||"작업상태 미입력"} · 일평균 ${m?m.toFixed(0):"-"} L/min · D.V. ${v!=null?v.toFixed(1)+"%":"-"}</div>`;
+  h.appendChild(x)
+ })
+}
+function dominantWork(d){
+ let arr=d.slots.map(s=>s.work).filter(Boolean);if(!arr.length)return "";
+ let c={};arr.forEach(x=>c[x]=(c[x]||0)+1);return Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0]
+}
+function updateStats(){
+ let today=getToday(), todayN=today?dayValues(today).length:0;$("todayDone").textContent=todayN;
+ let until=state.days.filter(d=>d.date<=todayISO());
+ let done=until.filter(d=>dayValues(d).length>=4).length, valid=until.reduce((n,d)=>n+dayValues(d).length,0);
+ $("daysDone").textContent=done;$("totalValid").textContent=valid;$("sumDays").textContent=until.filter(d=>dayValues(d).length).length;
+ let total=state.days.length||1,pct=Math.min(100,Math.round(done/total*100));$("progressText").textContent=pct+"%";$("progressBar").style.width=pct+"%";
+ let next=today?.slots.find(s=>!maxPEF(s));$("nextGuide").textContent=next?`다음 권장 측정: ${next.time||"시간 미정"}`:(today?"오늘 기본 4회 측정 완료":"");
+ let work=[],off=[];
+ state.days.forEach(d=>d.slots.forEach(s=>{let m=maxPEF(s);if(!m)return;if(s.work==="작업 중")work.push(+m);else if(["비작업","휴일"].includes(s.work))off.push(+m)}));
+ let mean=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length):null;
+ $("workMean").textContent=mean(work)??"-";$("offMean").textContent=mean(off)??"-";
+}
+function drawChart(canvas, points, type){
+ let c=canvas,ctx=c.getContext("2d"),W=c.width,H=c.height;ctx.clearRect(0,0,W,H);ctx.font="12px sans-serif";ctx.fillStyle="#66788b";
+ let vals=points.map(p=>p.y).filter(v=>v!=null);if(!vals.length){ctx.fillText("기록이 쌓이면 그래프가 표시됩니다.",20,35);return}
+ let min=Math.min(...vals),max=Math.max(...vals);if(max===min){max+=10;min-=10}
+ let pad={l:46,r:18,t:18,b:36};ctx.strokeStyle="#dfe7ed";ctx.lineWidth=1;
+ for(let i=0;i<4;i++){let y=pad.t+(H-pad.t-pad.b)*i/3;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke()}
+ ctx.fillStyle="#6a7b8b";ctx.fillText(max.toFixed(type==="dv"?0:0),8,pad.t+4);ctx.fillText(min.toFixed(type==="dv"?0:0),8,H-pad.b);
+ let xof=i=>pad.l+(W-pad.l-pad.r)*(points.length<=1?0.5:i/(points.length-1));
+ let yof=v=>pad.t+(max-v)/(max-min)*(H-pad.t-pad.b);
+ points.forEach((p,i)=>{if(p.y==null)return;let x=xof(i),y=yof(p.y);ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle=p.work?"#0b5fa5":"#6b7f8f";ctx.fill();
+  if(type==="dv"&&p.y>=20){ctx.strokeStyle="#ae2735";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.stroke()}
+ });
+ ctx.fillStyle="#6a7b8b";let step=Math.max(1,Math.ceil(points.length/6));points.forEach((p,i)=>{if(i%step===0)ctx.fillText(p.label.slice(5),xof(i)-14,H-12)});
+}
+function renderSummary(){
+ let pts=state.days.map(d=>({label:d.date,y:dayMean(d),work:dominantWork(d)==="작업 중"})).filter(p=>p.y!=null);
+ let dvs=state.days.map(d=>({label:d.date,y:dv(d),work:dominantWork(d)==="작업 중"})).filter(p=>p.y!=null);
+ drawChart($("trendCanvas"),pts,"pef");drawChart($("dvCanvas"),dvs,"dv");
+ let work=state.days.filter(d=>dominantWork(d)==="작업 중").map(dayMean).filter(x=>x!=null);
+ let off=state.days.filter(d=>["비작업","휴일"].includes(dominantWork(d))).map(dayMean).filter(x=>x!=null);
+ let wm=work.length?work.reduce((a,b)=>a+b,0)/work.length:null, om=off.length?off.reduce((a,b)=>a+b,0)/off.length:null;
+ let highDV=dvs.filter(x=>x.y>=20).length;
+ let msg="기록이 충분히 쌓이면 작업일과 비작업일의 PEFR 평균 및 일중변동률을 비교할 수 있습니다.";
+ if(wm!=null&&om!=null){msg=`작업일 일평균 PEFR ${wm.toFixed(0)} L/min, 비작업일 ${om.toFixed(0)} L/min입니다. ${highDV?`D.V. 20% 이상인 날은 ${highDV}일입니다.`:"D.V. 20% 이상인 날은 현재 없습니다."} 이 요약은 작업관련성 평가를 보조하기 위한 참고자료이며 Oasys 전문 판정을 대체하지 않습니다.`}
+ $("interpretation").textContent=msg;
+}
+function updateAll(){renderToday();renderHistory();updateStats();renderSummary()}
+fields.forEach(id=>$(id).addEventListener("change",save));
+$("makePeriod").onclick=makePeriod;
+$("addSlot").onclick=()=>{let d=getToday();if(!d)return;d.slots.push(emptySlot(""));save()};
+$("printBtn").onclick=()=>window.print();
+function csvText(){let q=v=>`"${String(v??"").replaceAll('"','""')}"`,h=["이름","회사","부서","생년월일","키","체중","날짜","시간","PEF1","PEF2","PEF3","PEF4","PEF5","최고값","작업상태","장소","증상","기관지확장제"];let lines=[h.map(q).join(",")];
+ state.days.forEach(d=>d.slots.forEach(s=>lines.push([state.info.name,state.info.company,state.info.dept,state.info.birth,state.info.height,state.info.weight,d.date,s.time,s.p1,s.p2,s.p3,s.p4,s.p5,maxPEF(s),s.work,s.place,s.symptom,s.med].map(q).join(","))));return "\uFEFF"+lines.join("\n")}
+function download(blob,name){let a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function fname(ext){return `PEFR_${state.info.name||"기록"}_${state.info.startDate||""}.${ext}`}
+$("csvBtn").onclick=()=>download(new Blob([csvText()],{type:"text/csv;charset=utf-8"}),fname("csv"));
+$("backupBtn").onclick=()=>{save();download(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),fname("json"))};
+$("restoreFile").onchange=async e=>{let f=e.target.files?.[0];if(!f)return;try{let x=JSON.parse(await f.text());if(!x.info||!Array.isArray(x.days))throw 0;state=x;localStorage.setItem(KEY,JSON.stringify(state));load();alert("복원했습니다.")}catch(e){alert("올바른 백업파일이 아닙니다.")}};
+$("clearBtn").onclick=()=>{if(confirm("이 기기의 모든 PEFR 기록을 삭제할까요?")){localStorage.removeItem(KEY);location.reload()}};
+$("shareBtn").onclick=async()=>{let file=new File([csvText()],fname("csv"),{type:"text/csv"});if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({title:"PEFR 연속측정 기록",text:`담당자 ${RECIPIENT}`,files:[file]})}catch(e){}}else alert("이 브라우저는 파일공유를 지원하지 않습니다. CSV를 저장한 뒤 메일에 첨부해 주세요.")};
+$("mailBtn").onclick=()=>{let subject=encodeURIComponent(`[PEFR 제출] ${state.info.name||""} / ${state.info.company||""}`);let body=encodeURIComponent(`안녕하세요.\n\nPEFR 연속측정 기록을 제출합니다.\n\n이름: ${state.info.name||""}\n회사: ${state.info.company||""}\n부서: ${state.info.dept||""}\n측정 시작일: ${state.info.startDate||""}\n측정기간: ${state.info.weeks||""}주\n\n저장한 CSV 또는 PDF 파일을 첨부합니다.`);location.href=`mailto:${RECIPIENT}?subject=${subject}&body=${body}`};
+$("notifyBtn").onclick=async()=>{if(!("Notification"in window)){alert("이 브라우저는 알림을 지원하지 않습니다.");return}let p=await Notification.requestPermission();alert(p==="granted"?"알림 권한이 허용되었습니다. 페이지가 열려 있는 동안 권장 측정시간에 안내할 수 있습니다.":"알림 권한이 허용되지 않았습니다.")};
+let notified={};setInterval(()=>{if(!("Notification"in window)||Notification.permission!=="granted")return;let now=new Date(),hh=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");if(suggested.includes(hh)&&!notified[hh]){notified[hh]=1;new Notification("PEFR 측정시간 안내",{body:`권장 측정시간 ${hh}입니다. 가능하면 지금 PEFR을 측정해 기록해 주세요.`})}},60000);
+if("serviceWorker"in navigator){navigator.serviceWorker.register("./service-worker.js").catch(()=>{})}
+load();
+</script>
+</body>
+</html>
